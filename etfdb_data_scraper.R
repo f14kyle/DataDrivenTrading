@@ -1,6 +1,3 @@
-
-
-
 # 9/24/2016
 # ETF Metadata Scraper
 # This program scrapes ETF metadata from ETFDB
@@ -11,7 +8,9 @@ setwd(directory)
 
 # Load libraries
 library(readxl)
+library(quantmod)
 library(rvest) # for read_html
+library(rPref)
 
 # Load list of ETFs
 # Source: http://www.nasdaq.com/etfs/list
@@ -25,21 +24,117 @@ colnames(df) = c("symbol","name","etfdb.category","inception.date","expense.rati
 df$inception.date = as.Date(df$inception.date,origin = "1899-12-30")
 
 # Load latest set of scraped sites from ETFdb.com
-load("")
+load("20160930_allsites.rda")
+
+n.top = 10
+
+df.ac = psel(subset(df,etfdb.category == "All Cap Equities"),low(expense.ratio),top = n.top)
+df.lcb = psel(subset(df,etfdb.category == "Large Cap Blend Equities"),low(expense.ratio),top = n.top)
+df.lcg = psel(subset(df,etfdb.category == "Large Cap Growth Equities"),low(expense.ratio),top = n.top)
+df.lcv = psel(subset(df,etfdb.category == "Large Cap Value Equities"),low(expense.ratio),top = n.top)
+df.mcb = psel(subset(df,etfdb.category == "Mid Cap Blend Equities"),low(expense.ratio),top = n.top)
+df.mcg = psel(subset(df,etfdb.category == "Mid Cap Growth Equities"),low(expense.ratio),top = n.top)
+df.mcv = psel(subset(df,etfdb.category == "Mid Cap Value Equities"),low(expense.ratio),top = n.top)
+df.scb = psel(subset(df,etfdb.category == "Small Cap Blend Equities"),low(expense.ratio),top = n.top)
+df.scg = psel(subset(df,etfdb.category == "Small Cap Growth Equities"),low(expense.ratio),top = n.top)
+df.scv = psel(subset(df,etfdb.category == "Small Cap Value Equities"),low(expense.ratio),top = n.top)
+
+# Save all dividend data to list
+dividend.data = vector("list",nrow(df))
+
+for (i in 1:nrow(df)){
+  dividend.data[[i]] = getDividends(df$symbol[i])
+}
+
+
+
+
+
+
+
+
+
+
+plot.allcap = ggplot() + 
+  geom_point(data = df.ac,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text(data = df.ac,aes(x = c.issuer,y = expense.ratio,label = df.ac$symbol),hjust=0, vjust=1) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.lcb = ggplot() + 
+  geom_point(data = df.lcb,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.lcg = ggplot() + 
+  geom_point(data = df.lcg,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.lcv = ggplot() + 
+  geom_point(data = df.lcv,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.mcb = ggplot() + 
+  geom_point(data = df.mcb,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.mcg = ggplot() + 
+  geom_point(data = df.mcg,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.mcv = ggplot() + 
+  geom_point(data = df.mcv,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.scb = ggplot() + 
+  geom_point(data = df.scb,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.scg = ggplot() + 
+  geom_point(data = df.scg,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.scv = ggplot() + 
+  geom_point(data = df.scv,aes(x = c.issuer,y = expense.ratio)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
 
 # Create requisite columns
 df["c.issuer"] = gsub( " .*$", "", df$name )
 df["c.structure"] = NA
 df["c.expense.ratio"] = NA
-df["c.inception"] = NA
+df["c.inception.date"] = NA
 df["c.tax.form"] = NA
 df["c.tracking.index"] = NA
 
-# Avoid Warning Message: XML content does not seem to be XML by 
-# prepending "http://" to url.
-url.list <- paste("http://etfdb.com/etf/", df$symbol, sep="")
 
-# ETFDB only allows 163 pings at a time.  We'll break down the crawling by issuer.
+for (i in 1:nrow(df)){
+  cast <- html_nodes(all.sites[[i]], ".pull-right")
+  df$c.issuer[i] = html_text(cast)[6]
+  df$c.structure[i] = html_text(cast)[7]
+  df$c.expense.ratio[i] = html_text(cast)[8]
+  df$c.inception.date[i] = html_text(cast)[10]
+  df$c.tax.form[i] = html_text(cast)[11]
+  df$c.tracking.index[i] = html_text(cast)[12]
+}
 
 
 for (i in 1:nrow(df)){
@@ -53,15 +148,6 @@ for (i in 1:nrow(df)){
 }
 
 
-for (i in 1:nrow(df)){
-  cast <- try(html_nodes(all.sites[[i]], ".pull-right"))
-  df$c.issuer[i] = try(html_text(cast)[6])
-  df$c.structure[i] = try(html_text(cast)[7])
-  df$c.expense.ratio[i] = try(html_text(cast)[8])
-  df$c.inception.date[i] = try(html_text(cast)[10])
-  df$c.tax.form[i] = try(html_text(cast)[11])
-  df$c.tracking.index[i] = try(html_text(cast)[12])
-}
 
-save(df,file = "etfdb_metadata.rda")
+save(df,file = "etfdb_data.rda")
 

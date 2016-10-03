@@ -29,11 +29,18 @@ n.loops = ceiling(nrow(df)/160)
 # Save all web content first
 
 all.sites = vector("list",nrow(df))
-for (i in 1:n.loops){
+for (i in 1:n.loops - 1){
   for (j in (160*i - 159):(160 * i)){
     all.sites[[j]] = try(read_html(url.list[j]))
   }
   Sys.sleep(2)
 }
 
-save(all.sites,file = paste(Sys.Date(),"_etfdb_allsites.rda"))
+for (j in 160*n.loops - 159:nrow(df)){
+  all.sites[[j]] = try(read_html(url.list[j]))
+}
+
+Sys.sleep(2)
+
+
+save(all.sites,file = paste(Sys.Date(),"20161001_etfdb_allsites.rda"))
