@@ -40,10 +40,10 @@ df.scg = psel(subset(df,etfdb.category == "Small Cap Growth Equities"),low(expen
 df.scv = psel(subset(df,etfdb.category == "Small Cap Value Equities"),low(expense.ratio),top = n.top)
 
 # Save all dividend data to list
-dividend.data = vector("list",nrow(df))
+OHLC.data = vector("list",nrow(df))
 
 for (i in 1:nrow(df)){
-  dividend.data[[i]] = getDividends(df$symbol[i])
+  OHLC.data[[i]] = try(getSymbols(df$symbol[i], src = "yahoo"))
 }
 
 
