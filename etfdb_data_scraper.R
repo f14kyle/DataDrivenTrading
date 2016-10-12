@@ -3,7 +3,7 @@
 # This program scrapes ETF metadata from ETFDB
 
 rm(list=ls()) 
-directory = "C:/userdata/DataDrivenTrading"
+directory = "D:/Github/DataDrivenTrading"
 setwd(directory)
 
 # Load libraries
@@ -14,6 +14,7 @@ library(rPref)
 library(ggplot2)
 library(ggrepel)
 library(scales)
+library(gridExtra)
 
 # Load list of ETFs
 # Source: http://www.nasdaq.com/etfs/list
