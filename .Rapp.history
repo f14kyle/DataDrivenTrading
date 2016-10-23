@@ -1,0 +1,2 @@
+load("/Volumes/DATA/Github/DataDrivenTrading/etfdb_data.rda")
+load("/Volumes/DATA/Github/DataDrivenTrading/etf_data.rda")
