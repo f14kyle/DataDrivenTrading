@@ -242,35 +242,46 @@ df.lazy = cbind(df.cagr.lazy,df.sd.lazy$SD,df.dd.lazy$DD,df.md.lazy$MD,df.pi.laz
 colnames(df.lazy) = c("Timeframe","Name","Rebalance.Period","CAGR","SD","DD","MD","PI")
 save(data = df.lazy,file = "df_lazy.rda")
 
+####################################
+# Calculate paretos for CAGR vs DD
 
 
-##############################################################
-# Calculate paretos
-
-pareto.none = vector("list", 4)
-pareto.yearly = vector("list", 4)
-pareto.quarterly = vector("list",4)
-pareto.monthly = vector("list",4)
-
+pareto.dd.yearly = vector("list", 4)
 # Select correct timeframe in df.lazy based on timeframe and rebalance period
-timeframe.selector = sapply(timeframe.codes, function(x) grepl(x,df.lazy$Timeframe))
-rebalance.selector = sapply(rebalance.periods,function(x) grepl(x,df.lazy$Rebalance.Period))
+df.lazy.yearly = subset(df.lazy,Rebalance.Period == "Yearly")
+timeframe.selector = sapply(timeframe.codes, function(x) grepl(x,df.lazy.yearly$Timeframe))
+
 
 for (i in 1:timeframe.count){
-  for (j in 1:rebalance.count){
-    pareto.none[[i]] = psel(df.lazy[as.array(timeframe.selector[,i] & rebalance.selector[,1]),],high(as.numeric(CAGR)) * low(as.numeric(PI)))
-    pareto.yearly[[i]] = psel(df.lazy[as.array(timeframe.selector[,i] & rebalance.selector[,2]),],high(as.numeric(CAGR)) * low(as.numeric(PI)))
-    pareto.quarterly[[i]] = psel(df.lazy[as.array(timeframe.selector[,i] & rebalance.selector[,3]),],high(as.numeric(CAGR)) * low(as.numeric(PI)))
-    pareto.monthly[[i]] = psel(df.lazy[as.array(timeframe.selector[,i] & rebalance.selector[,4]),],high(as.numeric(CAGR)) * low(as.numeric(PI)))
-  }
+    pareto.dd.yearly[[i]] = psel(df.lazy.yearly[as.array(timeframe.selector[,i]),],high(as.numeric(CAGR)) * low(as.numeric(DD)), top_level = 3)
 }
 
-df.pareto = data.frame()
+df.pareto.dd = data.frame()
 for (i in 1:timeframe.count){
-  df.pareto = rbind(df.pareto,data.frame(pareto.none[[i]]))
-  df.pareto = rbind(df.pareto,data.frame(pareto.yearly[[i]]))
-  df.pareto = rbind(df.pareto,data.frame(pareto.quarterly[[i]]))
-  df.pareto = rbind(df.pareto,data.frame(pareto.monthly[[i]]))
+  df.pareto.dd = rbind(df.pareto.dd,data.frame(pareto.dd.yearly[[i]]))
 }
 
-save(data = df.pareto,file = "df_lazy_pareto.rda")
+save(data = df.pareto.dd,file = "df_pareto_dd.rda")
+
+####################################
+# Calculate paretos for CAGR vs pi
+
+
+pareto.pi.yearly = vector("list", 4)
+# Select correct timeframe in df.lazy based on timeframe and rebalance period
+df.lazy.yearly = subset(df.lazy,Rebalance.Period == "Yearly")
+timeframe.selector = sapply(timeframe.codes, function(x) grepl(x,df.lazy.yearly$Timeframe))
+
+
+for (i in 1:timeframe.count){
+  pareto.pi.yearly[[i]] = psel(df.lazy.yearly[as.array(timeframe.selector[,i]),],high(as.numeric(CAGR)) * low(as.numeric(PI)), top_level = 3)
+}
+
+df.pareto.pi = data.frame()
+for (i in 1:timeframe.count){
+  df.pareto.pi = rbind(df.pareto.pi,data.frame(pareto.pi.yearly[[i]]))
+}
+
+save(data = df.pareto.pi,file = "df_pareto_pi.rda")
+
+

@@ -17,6 +17,8 @@ library(scales) # for percent
 
 # generate 
 load("df_lazy.rda")
+load("df_pareto_dd.rda")
+load("df_pareto_pi.rda")
 ```
 ## Introduction
 
@@ -41,57 +43,41 @@ Very simply, this study compares the risk and return performance of 18 lazy port
 
 
 
-```{r plot.code, echo=FALSE}
+```{r plot.code, echo=FALSE, fig.width = 11}
 df.lazy.subset = subset(df.lazy,Rebalance.Period == "Yearly")
-df.pareto.subset =  subset(df.pareto,Rebalance.Period == "Yearly")
+
+df.pareto.dd.subset.1 =  subset(df.pareto.dd,.level == "1")
 
 plot.dd = ggplot() + 
-          geom_point(data = df.lazy.subset,aes(x = as.numeric(levels(DD))[DD],y = as.numeric(CAGR),colour = Name),size = 2) +
-          #scale_colour_brewer(palette = "Spectral") +
+          geom_point(data = df.lazy.subset,aes(x = as.numeric(levels(DD))[DD],y = as.numeric(CAGR)),colour = "Gray",size = 2) +
+          geom_point(data = df.pareto.dd.subset.1,aes(x = as.numeric(levels(DD))[DD],y = as.numeric(CAGR),colour = Name),size = 2) + 
           theme_dark() +
           scale_y_continuous(labels = percent) + 
           scale_x_continuous(labels = percent, trans = "reverse") +
-          labs(title = "Annualized Returns vs Downside Deviation",
+          labs(title = "CAGR vs Downside Deviation",
             x = "Downside Deviation at rf = 0",
             y = "CAGR") + 
-          facet_grid(. ~ Timeframe) +
+          facet_grid(. ~ Timeframe, scales = "free") +
           theme(legend.title=element_blank(),legend.position = "bottom")
 
 
-plot.md = ggplot() + 
-          geom_point(data = df.lazy.subset,aes(x = as.numeric(levels(MD))[MD],y = as.numeric(CAGR),colour = Name),size = 2) +
-         # scale_colour_brewer(palette = "Spectral") +
-          theme_dark() +
-          scale_y_continuous(labels = percent) + 
-          scale_x_continuous(labels = percent) +
-          labs(title = "Annualized Returns vs Maximum Drawdown",
-            x = "Maximum Drawdown",
-            y = "CAGR") + 
-          facet_grid(. ~ Rebalance.Period) +
-          theme(legend.title=element_blank(),legend.position = "bottom")
-
+df.pareto.pi.subset.1 =  subset(df.pareto.pi,Rebalance.Period == "Yearly" & .level == "1")
 
 plot.pi = ggplot() + 
           geom_point(data = df.lazy.subset,aes(x = as.numeric(levels(PI))[PI],y = as.numeric(CAGR)),colour = "Gray",size = 2) +
-          geom_point(data = df.pareto.subset,aes(x = as.numeric(levels(PI))[PI],y = as.numeric(CAGR),colour = Name),size = 2) +
-  
-          scale_colour_brewer(palette = "Spectral") +
+          geom_point(data = df.pareto.pi.subset.1,aes(x = as.numeric(levels(PI))[PI],y = as.numeric(CAGR),colour = Name),size = 2) + 
           theme_dark() +
           scale_y_continuous(labels = percent) + 
           scale_x_continuous(labels = percent, trans = "reverse") +
           labs(title = "CAGR vs Pain Index",
             x = "Pain Index",
             y = "CAGR") + 
-          facet_grid(. ~ Timeframe) +
+          facet_grid(. ~ Timeframe, scales = "free") +
           theme(legend.title=element_blank(),legend.position = "bottom")
-
-
-```
-
-```{r plot,echo = false, fig.width = 11, fig.height = 11}
 
 plot.dd
 
-plot.md
+plot.pi
+
 
 ```
