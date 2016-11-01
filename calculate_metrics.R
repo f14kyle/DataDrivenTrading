@@ -12,8 +12,9 @@ library(scales)
 library(RColorBrewer)
 library(reshape2)
 library(rPref)
-#setwd("D:/Dropbox/Github/retirement-planner")
-setwd("C:/UserData/DataDrivenTrading/portfolio_selection")
+
+setwd("/Volumes/DATA/Github/DataDrivenTrading")
+#setwd("C:/UserData/DataDrivenTrading/portfolio_selection")
 
 filename.lazy = "lazy_portfolios.xlsx"
 
@@ -26,7 +27,7 @@ rebalance.periods = c("None","Monthly","Quarterly","Yearly")
 rebalance.count = length(rebalance.periods)
 
 # Set lazy portfolio names
-portfolio.lazy.names = c("Aronson Family Taxable","Fundadvice Ultimate Buy & Hold","Coffeehouse","Margaritaville","Dr. Bernstein's No Brainer","Second Grader's Starter","Dr. Bernstein's Smart Money","Yale U's Unconventional","Bogleheads 3 Funds","Bogleheads 4 Funds","Harry Browne Permanent","Swedroe Simple Portfolio","Swedroe Minimize Fat Tails","Mebane Faber Ivy","Rick Ferri Core Four","Scott Burns Couch","Stocks/Bonds 60/40","stocks/Bonds 40/60")
+portfolio.lazy.names = c("Aronson Family Taxable","Fundadvice Ultimate Buy & Hold","Coffeehouse","Margaritaville","Dr. Bernstein's No Brainer","Second Graders Starter","Dr. Bernstein's Smart Money","Yale Us Unconventional","Bogleheads 3 Funds","Bogleheads 4 Funds","Harry Browne Permanent","Swedroe Simple Portfolio","Swedroe Minimize Fat Tails","Mebane Faber Ivy","Rick Ferri Core Four","Scott Burns Couch","Stocks/Bonds 60/40","Stocks/Bonds 40/60")
 portfolio.lazy.count = length(portfolio.lazy.names)
 
 #MAR = c(0.00,0.01,0.02,0.03,0.04,0.05,0.06)
@@ -189,6 +190,9 @@ for (i in 1:timeframe.count){
   }
 }
 
+# Save portfolio returns
+save(data = returns.lazy.yearly, file = "returns.rda")
+
 # Construct melted dataframe out of cagr.lazy
 df.cagr.lazy = data.frame()
 for (i in 1:timeframe.count){
@@ -284,4 +288,16 @@ for (i in 1:timeframe.count){
 
 save(data = df.pareto.pi,file = "df_pareto_pi.rda")
 
+##################################### Calculate cumprod all of the portfolios
+cumprod.returns = cumprod(1 + returns.lazy.yearly[[10]])
+
+df.returns = data.frame(date = index(cumprod.returns),cumprod.returns,stringsAsFactors = FALSE)
+colnames(df.returns) = c("date",portfolio.lazy.names)
+
+df.returns = df.returns[c('date','Harry Browne Permanent','Rick Ferri Core Four','Scott Burns Couch','Second Graders Starter','Stocks/Bonds 60/40','Stocks/Bonds 40/60','Swedroe Simple Portfolio','Yale Us Unconventional')]
+
+df.returns.melted = melt(df.returns, id = c("date"))
+
+ggplot(data = df.returns.melted) + 
+  geom_line(aes(x = date,y = value,color = variable))
 

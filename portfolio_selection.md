@@ -13,6 +13,7 @@ library(scales) # for percent
 load("df_lazy.rda")
 load("df_pareto_dd.rda")
 load("df_pareto_pi.rda")
+load("returns.rda")
 ```
 
 Introduction
