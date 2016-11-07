@@ -13,7 +13,7 @@ library(RColorBrewer)
 library(reshape2)
 library(rPref)
 
-setwd("/Volumes/DATA/Github/DataDrivenTrading")
+setwd("/Volumes/DATA/Github/LazyPortfolioAnalytics")
 #setwd("C:/UserData/DataDrivenTrading/portfolio_selection")
 
 filename.lazy = "lazy_portfolios.xlsx"
