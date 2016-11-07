@@ -4,7 +4,7 @@
 # ETF Metadata Scraper
 # This program scrapes ETF metadata from ETFDB
 
-OHLC_scraper = function(df.target){
+scrapeOHLC = function(df.target){
 
 rm(list=ls())
 library(readxl)
