@@ -1,0 +1,179 @@
+
+setwd("/Volumes/DATA/Github/LazyPortfolioAnalytics")
+
+# Load libraries
+library(readxl)
+library(rPref)  # for psel
+library(ggplot2)
+library(scales)  # for percent
+library(ggrepel)  # for geom_text_repel
+library(gridExtra) # for grid.arrange
+
+# Load list of ETFs
+df <- data.frame(read_excel("etfdb_data.xls"))
+colnames(df) = c("symbol","name","etfdb.category","inception.date","expense.ratio","commission.free","expenses.rating")
+# Correct Excel format date for inception date
+df$inception.date = as.Date(df$inception.date,origin = "1899-12-30")
+df["c.issuer"] = gsub( " .*$", "", df$name )
+df["data.period"] = NA
+
+source("fetchOHLC")
+all.stocks.list = fetchOHLC(df)
+
+# Symbols that don't have data have a data time length of 0
+for (i in 1:nrow(df)){
+  df$data.period[i] = try(floor((last(index(all.stocks.list[[i]]))) - first(index(all.stocks.list[[i]])))/365)
+}
+
+
+df.metrics["cagr"]
+df.metrics["pi"]
+df.metrics["dd"]
+
+# Initialize empty df
+df.metrics <- data.frame(Timeframe = character(),
+                 symbol = character(),
+                 cagr = double(),
+                 dd = double(),
+                 pi = double(),
+                 stringsAsFactors=FALSE) 
+
+df.subset = subset(df,floor(data.period) == 9)
+for (i = 1:nrow(df.subset)){
+  symbol = df.subset$symbol[i]
+  index = grep(symbol,df$symbol)
+  dailyreturns = na.omit(last(Return.calculate(all.stocks.list[[index]]$adjusted),'9 years'))
+  df.metrics$cagr[i]
+}
+
+n.top = 10
+
+df.ac = psel(subset(df,etfdb.category == "All Cap Equities"),low(expense.ratio),top = n.top)
+df.lcb = psel(subset(df,etfdb.category == "Large Cap Blend Equities"),low(expense.ratio),top = n.top)
+df.lcg = psel(subset(df,etfdb.category == "Large Cap Growth Equities"),low(expense.ratio),top = n.top)
+df.lcv = psel(subset(df,etfdb.category == "Large Cap Value Equities"),low(expense.ratio),top = n.top)
+df.mcb = psel(subset(df,etfdb.category == "Mid Cap Blend Equities"),low(expense.ratio),top = n.top)
+df.mcg = psel(subset(df,etfdb.category == "Mid Cap Growth Equities"),low(expense.ratio),top = n.top)
+df.mcv = psel(subset(df,etfdb.category == "Mid Cap Value Equities"),low(expense.ratio),top = n.top)
+df.scb = psel(subset(df,etfdb.category == "Small Cap Blend Equities"),low(expense.ratio),top = n.top)
+df.scg = psel(subset(df,etfdb.category == "Small Cap Growth Equities"),low(expense.ratio),top = n.top)
+df.scv = psel(subset(df,etfdb.category == "Small Cap Value Equities"),low(expense.ratio),top = n.top)
+
+
+plot.box = ggplot(df,aes(x = etfdb.category,y = expense.ratio)) + 
+  geom_boxplot(outlier.colour = "black", outlier.size = ) +
+  geom_jitter(aes(colour = etfdb.category)) + 
+  scale_y_continuous(labels = percent,breaks = scales::pretty_breaks(n = 10)) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))  
+
+
+plot.lcb = ggplot() + 
+  geom_point(data = df.lcb,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text_repel(data = df.lcb,aes(x = c.issuer,y = expense.ratio,label = df.lcb$symbol)) + 
+  ggtitle("Large Cap Blend") +
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.lcg = ggplot() + 
+  geom_point(data = df.lcg,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text_repel(data = df.lcg,aes(x = c.issuer,y = expense.ratio,label = df.lcg$symbol)) + 
+  ggtitle("Large Cap Growth") +
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.lcv = ggplot() + 
+  geom_point(data = df.lcv,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text_repel(data = df.lcv,aes(x = c.issuer,y = expense.ratio,label = df.lcv$symbol)) + 
+  ggtitle("Large Cap Value") + 
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.mcb = ggplot() + 
+  geom_point(data = df.mcb,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text_repel(data = df.mcb,aes(x = c.issuer,y = expense.ratio,label = df.mcb$symbol)) + 
+  ggtitle("Small Cap Blend") + 
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.mcg = ggplot() + 
+  geom_point(data = df.mcg,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text_repel(data = df.mcg,aes(x = c.issuer,y = expense.ratio,label = df.mcg$symbol)) + 
+  ggtitle("Mid Cap Growth") + 
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.mcv = ggplot() + 
+  geom_point(data = df.mcv,aes(x = c.issuer,y = expense.ratio)) +
+  geom_text_repel(data = df.mcv,aes(x = c.issuer,y = expense.ratio,label = df.mcv$symbol)) + 
+  ggtitle("Mid Cap Value") + 
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+
+plot.scb = ggplot() + 
+  geom_point(data = df.scb,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text_repel(data = df.scb,aes(x = c.issuer,y = expense.ratio,label = df.scb$symbol)) + 
+  ggtitle("Small Cap Blend") + 
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+
+plot.scg = ggplot() + 
+  geom_point(data = df.scg,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text_repel(data = df.scg,aes(x = c.issuer,y = expense.ratio,label = df.scg$symbol)) + 
+  ggtitle("Small Cap Growth") + 
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+plot.scv = ggplot() + 
+  geom_point(data = df.scv,aes(x = c.issuer,y = expense.ratio)) + 
+  geom_text_repel(data = df.scv,aes(x = c.issuer,y = expense.ratio,label = df.scv$symbol)) + 
+  ggtitle("Small Cap Value") + 
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+
+
+
+
+grid.arrange(plot.lcv,plot.lcb,plot.lcg,plot.mcv,plot.mcb,plot.mcg,plot.scv,plot.scb,plot.scg,ncol = 3)
+
