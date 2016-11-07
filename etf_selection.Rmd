@@ -14,7 +14,7 @@ Part 1 determined which lazy portfolios were the best performers.  Part 2 will d
 
 
 ```{r load, echo=FALSE}
-setwd("/Volumes/DATA/Github")
+setwd("/Volumes/DATA/Github/LazyPortfolioAnalytics")
 #
 
 # Load libraries

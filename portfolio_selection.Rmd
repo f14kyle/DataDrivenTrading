@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r init}
 # Load libraries
-setwd("/Volumes/DATA/Github/DataDrivenTrading")
+setwd("/Volumes/DATA/Github/LazyPortfolioAnalytics")
 #
 
 library(ggplot2) # for ggplot

@@ -3,7 +3,7 @@ Lazy Porfolio Selection
 
 ``` r
 # Load libraries
-setwd("/Volumes/DATA/Github/DataDrivenTrading")
+setwd("/Volumes/DATA/Github/LazyPortfolioAnalytics")
 #
 
 library(ggplot2) # for ggplot
