@@ -8,6 +8,9 @@ library(ggplot2)
 library(scales)  # for percent
 library(ggrepel)  # for geom_text_repel
 library(gridExtra) # for grid.arrange
+library(dplyr) # for last
+library(xts)
+library(PerformanceAnalytics)
 
 # Load list of ETFs
 df <- data.frame(read_excel("etfdb_data.xls"))
@@ -17,7 +20,9 @@ df$inception.date = as.Date(df$inception.date,origin = "1899-12-30")
 df["c.issuer"] = gsub( " .*$", "", df$name )
 df["data.period"] = NA
 
-source("fetchOHLC")
+# source("scrapeOHLC.R")
+source("fetchOHLC.R")
+# scrapeOHLC(df)
 all.stocks.list = fetchOHLC(df)
 
 # Symbols that don't have data have a data time length of 0
@@ -25,26 +30,46 @@ for (i in 1:nrow(df)){
   df$data.period[i] = try(floor((last(index(all.stocks.list[[i]]))) - first(index(all.stocks.list[[i]])))/365)
 }
 
-
-df.metrics["cagr"]
-df.metrics["pi"]
-df.metrics["dd"]
-
 # Initialize empty df
-df.metrics <- data.frame(Timeframe = character(),
-                 symbol = character(),
-                 cagr = double(),
-                 dd = double(),
-                 pi = double(),
-                 stringsAsFactors=FALSE) 
-
 df.subset = subset(df,floor(data.period) == 9)
-for (i = 1:nrow(df.subset)){
-  symbol = df.subset$symbol[i]
-  index = grep(symbol,df$symbol)
+df.subset["timeframe"] = NA
+df.subset["cagr"] = NA
+df.subset["dd"] = NA
+df.subset["pi"] = NA
+
+for (i in 1:nrow(df.subset)){
+  
+  index = grep(paste("^",df.subset$symbol[i],"$",sep = ""),df$symbol) # need to insert word anchors to ensure exact string match
   dailyreturns = na.omit(last(Return.calculate(all.stocks.list[[index]]$adjusted),'9 years'))
-  df.metrics$cagr[i]
+  df.subset$cagr[i] = Return.annualized(dailyreturns, scale = NA, geometric = TRUE)
+  
+  df.subset$timeframe[i] = '9 years'
+  df.subset$dd[i] = DownsideDeviation(dailyreturns, MAR = 0,method = "subset")
+  df.subset$pi[i] = PainIndex(dailyreturns, geometric = TRUE, invert = TRUE)
+  
 }
+
+
+plot = ggplot() + 
+  geom_point(data = df.subset,aes(x = pi,y = cagr,size = expense.ratio)) + 
+  geom_text_repel(data = df.subset,aes(x = pi,y = cagr,label = df.subset$symbol)) + 
+  ggtitle("lala") + 
+  scale_y_continuous(labels = percent) + 
+  theme(legend.title=element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3))
+    
+
+
+
+
+
+
+
+
+
 
 n.top = 10
 

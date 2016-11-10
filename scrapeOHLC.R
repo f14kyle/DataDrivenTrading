@@ -12,7 +12,7 @@ library(quantmod)
 library(R.utils) # for countlines
 
 directory = "/Volumes/DATA/Github/LazyPortfolioAnalytics"
-data_path = "/Volumes/DATA/Dropbox/Data/LazyPortfolioAnalytics/OHLC/"
+data_path = "/Volumes/DATA/Github/Data/LazyPortfolioAnalytics/OHLC/"
 
 setwd(directory)
 

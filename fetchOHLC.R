@@ -1,5 +1,5 @@
 fetchOHLC = function(df.target){
-
+  data_path = "/Volumes/DATA/Github/Data/LazyPortfolioAnalytics/OHLC/"
 # Save all target stocks as merged XTS
 all.stocks.list = vector("list",nrow(df.target))
 
